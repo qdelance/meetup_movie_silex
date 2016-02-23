@@ -1,0 +1,9 @@
+# Redirect incoming URLs to index.php
+# http://silex.sensiolabs.org/doc/web_servers.html
+<IfModule mod_rewrite.c>
+    Options -MultiViews
+    RewriteEngine On
+    RewriteBase /
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
