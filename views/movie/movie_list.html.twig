@@ -1,0 +1,75 @@
+{% extends 'movie/movie.html.twig' %}
+
+{% block title %}{{ parent() }} - List{% endblock %}
+
+{% block body %}
+
+    {% if movies %}
+
+        <table class="table">
+
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Genres</th>
+                <th>Year</th>
+                <th>Release Date</th>
+                <th>Rating</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for movie in movies %}
+                <tr>
+                    <td>
+                        <a href="{{ path('movie_view', {'id': movie.id}) }}">{{ movie.title }}</a>
+                    </td>
+                    <td>
+                        {% if movie.type is not null %}
+                            {{ movie.type }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if movie.genres|length > 0 %}
+                            {{ movie.genres|join(', ') }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if movie.year is not null %}
+                            {{ movie.year }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if movie.releaseDate is not null %}
+                            {{ movie.releaseDate|date("m/d/Y") }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if movie.rating is not null %}
+                            {{ movie.rating }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ path('movie_edit', {'id': movie.id}) }}" class="btn btn-default">
+                            <i class="glyphicon glyphicon-edit"></i>
+                            Edit
+                        </a>
+
+                        <a href="{{ path('movie_delete', {'id': movie.id}) }}" class="btn btn-danger">
+                            <i class="glyphicon glyphicon-trash"></i>
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+
+        <p>No movie</p>
+
+    {% endif %}
+
+{% endblock %}
