@@ -29,6 +29,19 @@ $app->register(
   )
 );
 
+$app->register(new Silex\Provider\DoctrineServiceProvider(), array(
+  'dbs.options' => array (
+    'mysql' => array(
+      'driver'    => 'pdo_mysql',
+      'host'      => 'localhost',
+      'dbname'    => 'silex',
+      'user'      => 'root',
+      'password'  => '',
+      'charset'   => 'utf8mb4',
+    )
+  ),
+));
+
 ///////////////////////////////////////////////////////////////////////////////
 // Registering routes
 
@@ -49,35 +62,9 @@ $app->get(
 $app->get(
   '/movies/list',
   function () use ($app) {
-      $movies = [
-        [
-          'id' => 1,
-          'title' => 'Batman vs Superman',
-          'type' => 'Movie',
-          'genres' => ['action'],
-          'releaseDate' => '',
-          'year' => '1998',
-          'rating' => 3.4,
-        ],
-        [
-          'id' => 2,
-          'title' => 'Tous ensemble',
-          'type' => 'Movie',
-          'genres' => ['drama', 'comedy'],
-          'releaseDate' => '',
-          'year' => '2016',
-          'rating' => 8.9,
-        ],
-        [
-          'id' => 3,
-          'title' => 'Demain',
-          'type' => 'Movie',
-          'genres' => ['documentary'],
-          'releaseDate' => '',
-          'year' => '2015',
-          'rating' => 9.2,
-        ],
-      ];
+
+      $sql = "SELECT m.id, title, t.name as type, releaseDate, year, rating FROM movie m LEFT JOIN type t ON m.type_id=t.id LIMIT 100";
+      $movies = $app['db']->fetchAll($sql);
 
       return $app['twig']->render(
         'movie/movie_list.html.twig',
@@ -91,7 +78,16 @@ $app->get(
 $app->get(
   '/movie/{id}/view',
   function ($id) use ($app) {
-      return 'Movie View '.$id;
+
+      $sql = "SELECT m.id, title, t.name as type, releaseDate, year, rating FROM movie m LEFT JOIN type t ON m.type_id=t.id WHERE m.id = ?";
+      $movie = $app['db']->fetchAssoc($sql, array((int) $id));
+
+      return $app['twig']->render(
+        'movie/movie_view.html.twig',
+        array(
+          'movie' => $movie,
+        )
+      );
   }
 )->bind('movie_view');
 
@@ -136,7 +132,7 @@ $app->get(
 $app->get(
   '/',
   function () use ($app) {
-      return 'Hello';
+      return 'Hello, you\'re @ home';
   }
 );
 
