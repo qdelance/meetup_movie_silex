@@ -1,0 +1,27 @@
+{% extends 'movie/movie.html.twig' %}
+
+{% block title %}{{ parent() }} - Delete{% endblock %}
+
+{% block body %}
+
+    <p>
+        Are you sure you want to delete movie "{{ movie.title }}" ?
+    </p>
+
+    <form action="{{ path('movie_delete', {'id': movie.id}) }}" method="post">
+        <a href="{{ path('movie_view', {'id': movie.id}) }}" class="btn btn-default">
+            <i class="glyphicon glyphicon-chevron-left"></i>
+            Back to movie
+        </a>
+        <input type="submit" value="Delete" class="btn btn-danger" />
+        {# CSRF below... #}
+        {{ form_rest(form) }}
+    </form>
+
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+
+</style>
+{% endblock %}

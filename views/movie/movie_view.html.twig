@@ -1,0 +1,62 @@
+{% extends 'movie/movie.html.twig' %}
+
+{% block title %}{{ parent() }} - View{% endblock %}
+
+{% block body %}
+
+    {% if movie %}
+        <h2>{{ movie.title }}</h2>
+
+        <p><strong>Id: </strong>{{ movie.id }}</p>
+
+        {% if movie.type is not null %}
+        <p><strong>Type: </strong>{{ movie.type }}</p>
+        {%  endif %}
+
+        {% if movie.genres is defined and movie.genres|length > 0 %}
+            <p><strong>Genres: </strong>
+            <ul>
+            {% for genre in movie.genres %}
+                <li>{{ genre.name }}</li>
+            {%  endfor %}
+            </ul></p>
+        {%  endif %}
+
+        <p><strong>Year: </strong><br>
+            {{ movie.year }}
+        </p>
+
+        <p><strong>Release Date: </strong><br>
+            {{ movie.releaseDate|date("m/d/Y") }}
+        </p>
+
+        <p>
+            <a href="{{ path('movie_list') }}" class="btn btn-default">
+                <i class="glyphicon glyphicon-chevron-left"></i>
+                Back Home
+            </a>
+
+            <a href="{{ path('movie_edit', {'id': movie.id}) }}" class="btn btn-default">
+                <i class="glyphicon glyphicon-edit"></i>
+                Edit
+            </a>
+
+            <a href="{{ path('movie_delete', {'id': movie.id}) }}" class="btn btn-danger">
+                <i class="glyphicon glyphicon-trash"></i>
+                Delete
+            </a>
+        </p>
+
+    {% else %}
+
+        <p>No movie</p>
+
+    {% endif %}
+
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+
+</style>
+{% endblock %}
