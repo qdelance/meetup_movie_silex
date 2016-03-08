@@ -35,7 +35,7 @@
                     </td>
                     <td>
                         {% if movie.genres is defined and movie.genres|length > 0 %}
-                            {{ movie.genres|join(', ') }}
+                            {{ movie.genres }}
                         {% endif %}
                     </td>
                     <td>

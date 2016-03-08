@@ -3,11 +3,11 @@
 use Meetup\MyObjectManager;
 use Symfony\Component\Debug\ErrorHandler;
 use Symfony\Component\Debug\ExceptionHandler;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 require_once __DIR__.'/../vendor/autoload.php';
@@ -63,21 +63,6 @@ $app['object_manager'] = $app->share(function ($app) {
 // Registering routes
 
 $app->get(
-  '/movies/list',
-  function () use ($app) {
-
-      $movies = $app['object_manager']->findAllMovies();
-
-      return $app['twig']->render(
-        'movie/movie_list.html.twig',
-        array(
-          'movies' => $movies,
-        )
-      );
-  }
-)->bind('movie_list');
-
-$app->get(
   '/movie/{id}/view',
   function ($id) use ($app) {
 
@@ -103,13 +88,13 @@ $app->match(
       $form = $app['form.factory']->createBuilder()->getForm();
       if ($form->handleRequest($request)->isValid()) {
           $mgr->removeMovie($movie['id']);
-          $app['session']->getFlashBag('info', 'Object deleted');
+          $app['session']->getFlashBag()-> add('info', 'Object deleted '.$movie['title']);
 
           return $app->redirect($app["url_generator"]->generate('movie_list'));
       }
 
       // confirm page
-      return $app['twig']->render('movie/movie_delete.html.twig', array('form' => $form->createView(), 'movie' => $movie));;
+      return $app['twig']->render('movie/movie_delete.html.twig', array('form' => $form->createView(), 'movie' => $movie));
   }
 )->bind('movie_delete');
 
@@ -123,9 +108,21 @@ $app->match(
           $app->abort(404, "No movie found");
       }
 
+      $types = $mgr->findAllTypes();
+      foreach ($types as $type)
+      {
+          $typesChoice[$type['name']] = $type['id'];
+      }
+      $genres = $mgr->findAllGenres();
+      foreach ($genres as $genre)
+      {
+          $genresChoice[$genre['name']] = $genre['id'];
+      }
+
       $form = $app['form.factory']->createBuilder(FormType::class, $movie)
         ->add('title', TextType::class)
-        ->add('type', TextType::class, array('required' => false))
+        ->add('type_id', ChoiceType::class, array('choices'  => $typesChoice, 'multiple' => false, 'required' => false))
+        ->add('genres_id', ChoiceType::class, array('choices'  => $genresChoice, 'multiple' => true, 'required' => false))
         ->add('year', TextType::class, array('required' => false))
         ->add('releaseDate', TextType::class, array('required' => false))
         ->add('rating', TextType::class, array('required' => false))
@@ -139,10 +136,10 @@ $app->match(
 
           $mgr->persistMovie($data);
 
-          $app['session']->getFlashBag()->add('message', 'Object modified ' . $data['title']);
+          $app['session']->getFlashBag()->add('info', 'Object modified ' . $data['title']);
 
           // Redirect user to the list page
-          $request = Request::create($app['url_generator']->generate('movie_list'), 'GET');
+          $request = Request::create($app['url_generator']->generate('movie_list'));
           return $app->handle($request, HttpKernelInterface::SUB_REQUEST);
       }
 
@@ -162,9 +159,22 @@ $app->match(
         'rating' => ''
       );
 
+      $mgr = $app['object_manager'];
+      $types = $mgr->findAllTypes();
+      foreach ($types as $type)
+      {
+          $typesChoice[$type['name']] = $type['id'];
+      }
+      $genres = $mgr->findAllGenres();
+      foreach ($genres as $genre)
+      {
+          $genresChoice[$genre['name']] = $genre['id'];
+      }
+
       $form = $app['form.factory']->createBuilder(FormType::class, $data)
         ->add('title', TextType::class)
-        ->add('type', TextType::class, array('required' => false))
+        ->add('type_id', ChoiceType::class, array('choices'  => $typesChoice, 'multiple' => false, 'required' => false))
+        ->add('genres_id', ChoiceType::class, array('choices'  => $genresChoice, 'multiple' => true, 'required' => false))
         ->add('year', TextType::class, array('required' => false))
         ->add('releaseDate', TextType::class, array('required' => false))
         ->add('rating', TextType::class, array('required' => false))
@@ -179,10 +189,10 @@ $app->match(
           $mgr = $app['object_manager'];
           $mgr->persistMovie($data);
 
-          $app['session']->getFlashBag()->add('message', 'Object added ' . $data['title']);
+          $app['session']->getFlashBag()->add('info', 'Object added ' . $data['title']);
 
           // Redirect user to the list page
-          $request = Request::create($app['url_generator']->generate('movie_list'), 'GET');
+          $request = Request::create($app['url_generator']->generate('movie_list'));
           return $app->handle($request, HttpKernelInterface::SUB_REQUEST);
       }
 
@@ -208,7 +218,7 @@ $app->get(
         )
       );
   }
-)->bind('movie_list')->value('page', 1);;
+)->bind('movie_list')->value('page', 1);
 
 $app->get(
   '/contact',
@@ -221,8 +231,7 @@ $app->get(
   '/',
   function () use ($app) {
       // forward to /movies/list
-      $subRequest = Request::create('/movies/list', 'GET');
-
+      $subRequest = Request::create($app['url_generator']->generate('movie_list'));
       return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
   }
 );
