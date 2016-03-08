@@ -63,20 +63,6 @@ $app['object_manager'] = $app->share(function ($app) {
 // Registering routes
 
 $app->get(
-  '/hello/{name}',
-  function ($name) use ($app) {
-      return 'Hello '.$app->escape($name);
-  }
-);
-
-$app->get(
-  '/hello/{name}',
-  function ($name) use ($app) {
-      return 'Hello '.$app->escape($name);
-  }
-);
-
-$app->get(
   '/movies/list',
   function () use ($app) {
 
@@ -225,7 +211,10 @@ $app->get(
 $app->get(
   '/',
   function () use ($app) {
-      return 'Hello, you\'re @ home';
+      // forward to /movies/list
+      $subRequest = Request::create('/movies/list', 'GET');
+
+      return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
   }
 );
 
