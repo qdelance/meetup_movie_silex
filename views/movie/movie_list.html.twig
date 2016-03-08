@@ -19,8 +19,10 @@
                 <th>Actions</th>
             </tr>
             </thead>
-            {{ dump(movies) }}
             <tbody>
+
+            {% include 'default/pagination.html.twig' with {'route': 'movie_list', 'page': page, 'nbPages': nbPages} %}
+
             {% for movie in movies %}
                 <tr>
                     <td>

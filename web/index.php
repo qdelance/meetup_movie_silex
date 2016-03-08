@@ -192,14 +192,23 @@ $app->match(
 )->bind('movie_add');
 
 $app->get(
-  '/movies',
-  function () use ($app) {
-      // forward to /movies/list
-      $subRequest = Request::create('/movies/list', 'GET');
+  '/movies/{page}',
+  function ($page = 1) use ($app) {
 
-      return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+      $count = $app['object_manager']->findMovieCount();
+      $nbPage = ceil($count / MyObjectManager::NB_PER_PAGE);
+      $movies = $app['object_manager']->findAllMoviesPaginated($page);
+
+      return $app['twig']->render(
+        'movie/movie_list.html.twig',
+        array(
+          'movies' => $movies,
+          'page' => $page,
+          'nbPages' => $nbPage
+        )
+      );
   }
-)->bind('movie_home');
+)->bind('movie_list')->value('page', 1);;
 
 $app->get(
   '/contact',

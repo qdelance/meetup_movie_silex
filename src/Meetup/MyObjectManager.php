@@ -2,8 +2,19 @@
 
 namespace Meetup;
 
+/**
+ * Class MyObjectManager
+ * Simple class to store data, used to show how to use low level calls to DBAL
+ * This is done as use of Doctrine ORM requires third party provider not in default Silex distrib
+ * IMO, if you really want to use ORM, you should use Symfony rather than Silex...
+ * @package Meetup
+ */
 class MyObjectManager
 {
+
+    // Nb of items in paginated views
+    const NB_PER_PAGE = 25;
+
     // DBAL
     private $db;
 
@@ -22,8 +33,32 @@ class MyObjectManager
 
     public function findAllMovies()
     {
-        $sql = "SELECT m.id, title, t.name as type, releaseDate, year, rating FROM movie m LEFT JOIN type t ON m.type_id=t.id LIMIT 100";
+        $sql = "SELECT m.id, title, t.name as type, releaseDate, year, rating FROM movie m LEFT JOIN type t ON m.type_id=t.id ORDER BY title";
         $movies = $this->db->fetchAll($sql);
+
+        return $movies;
+    }
+
+    public function findMovieCount()
+    {
+        $statement = $this->db->prepare("SELECT count(*) FROM movie m LEFT JOIN type t ON m.type_id=t.id");
+        $statement->execute();
+        $count = $statement->fetchColumn(0);
+
+        return $count;
+    }
+
+    public function findAllMoviesPaginated($page, $limit = self::NB_PER_PAGE)
+    {
+        $statement = $this->db->prepare(
+          /*"SELECT m.id, title, t.name as type, releaseDate, year, rating FROM movie m LEFT JOIN type t ON m.type_id=t.id LIMIT :offset , :limit"*/
+          "SELECT m.id, title, t.name as type, releaseDate, year, rating FROM movie m LEFT JOIN type t ON m.type_id=t.id ORDER BY title LIMIT :limit OFFSET :offset"
+        );
+        $statement->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $statement->bindValue('offset', ($page - 1) * $limit, \PDO::PARAM_INT);
+        $statement->execute();
+
+        $movies = $statement->fetchAll();
 
         return $movies;
     }
@@ -33,29 +68,30 @@ class MyObjectManager
     {
         if ($movie != null) {
             if (array_key_exists('id', $movie)) {
-                $qb = $this->db->createQueryBuilder();
-                $sql = "UPDATE movie SET title = ?, year = ?, releaseDate = ?, rating = ? WHERE id = ?";
-                $this->db->executeUpdate(
-                  $sql,
-                  array(
-                    $movie['title'],
-                    $movie['year'],
-                    $movie['releaseDate'],
-                    $movie['rating'],
-                    $movie['id'],
-                  )
+                $statement = $this->db->prepare(
+                  "UPDATE movie SET title = :title, year = :year, releaseDate = :releaseDate, rating = :rating WHERE id = :id"
                 );
+
+                $statement->bindValue('title', $movie['title']);
+                $statement->bindValue('year', $movie['year']);
+                // http://doctrine-orm.readthedocs.org/projects/doctrine-dbal/en/latest/reference/data-retrieval-and-manipulation.html#doctrinedbaltypes-conversion
+                $statement->bindValue('releaseDate', $movie['releaseDate'], 'date');
+                $statement->bindValue('rating', $movie['rating']);
+                $statement->bindValue('id', $movie['id']);
+
+                $statement->execute();
+
             } else {
-                $sql = "INSERT INTO movie (title, year, releaseDate, rating) VALUES (?, ?, ?, ?)";
-                $this->db->executeUpdate(
-                  $sql,
-                  array(
-                    $movie['title'],
-                    $movie['year'],
-                    $movie['releaseDate'],
-                    $movie['rating'],
-                  )
+                $statement = $this->db->prepare(
+                  "INSERT INTO movie (title, year, releaseDate, rating) VALUES (:title, :year, :releaseDate, :rating)"
                 );
+
+                $statement->bindValue('title', $movie['title']);
+                $statement->bindValue('year', $movie['year']);
+                $statement->bindValue('releaseDate', $movie['releaseDate'], 'date');
+                $statement->bindValue('rating', $movie['rating']);
+
+                $statement->execute();
             }
         }
     }
