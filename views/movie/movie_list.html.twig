@@ -19,6 +19,7 @@
                 <th>Actions</th>
             </tr>
             </thead>
+            {{ dump(movies) }}
             <tbody>
             {% for movie in movies %}
                 <tr>
@@ -42,7 +43,9 @@
                     </td>
                     <td>
                         {% if movie.releaseDate is not null %}
+                            {# Stored as a "date" in DB, but we'not (yet) converting in in PHP DateTime objectManager->FindXXX()
                             {{ movie.releaseDate|date("m/d/Y") }}
+                            #}
                         {% endif %}
                     </td>
                     <td>

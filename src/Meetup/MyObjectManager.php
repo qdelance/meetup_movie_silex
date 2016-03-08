@@ -39,9 +39,9 @@ class MyObjectManager
                   $sql,
                   array(
                     $movie['title'],
-                    $movie['year'] != null ? $movie['year'] : '',
-                    $movie['releaseDate'] != null ? $movie['releaseDate'] : 'NULL',
-                    $movie['rating'] != null ? $movie['rating'] : 0,
+                    $movie['year'],
+                    $movie['releaseDate'],
+                    $movie['rating'],
                     $movie['id'],
                   )
                 );
@@ -51,9 +51,9 @@ class MyObjectManager
                   $sql,
                   array(
                     $movie['title'],
-                    $movie['year'] != null ? $movie['year'] : '',
-                    $movie['releaseDate'] != null ? $movie['releaseDate'] : 'NULL',
-                    $movie['rating'] != null ? $movie['rating'] : 0,
+                    $movie['year'],
+                    $movie['releaseDate'],
+                    $movie['rating'],
                   )
                 );
             }
