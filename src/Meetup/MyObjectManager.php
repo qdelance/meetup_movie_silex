@@ -90,6 +90,21 @@ class MyObjectManager
         return $movies;
     }
 
+    public function findBestRated($page, $limit)
+    {
+        // GROUP_CONCAT is not portable, but this request avoid costly rehydratation as we do not use Doctrine ORM
+        $statement = $this->db->prepare(
+          "SELECT m.id, title, t.name as type, releaseDate, year, rating FROM movie m LEFT JOIN type t ON m.type_id=t.id ORDER BY rating DESC LIMIT :limit OFFSET :offset"
+        );
+        $statement->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $statement->bindValue('offset', ($page - 1) * $limit, \PDO::PARAM_INT);
+        $statement->execute();
+
+        $movies = $statement->fetchAll();
+
+        return $movies;
+    }
+
     // Very weak, would need some checks
     public function persistMovie(array $movie)
     {

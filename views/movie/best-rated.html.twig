@@ -1,0 +1,6 @@
+
+<ul class="nav nav-pills nav-stacked">
+    {% for movie in movies %}
+        <li><a href="{{ path('movie_view', {id: movie.id}) }}">{{ movie.title }} - {{ movie.rating }}</a></li>
+    {% endfor %}
+</ul>

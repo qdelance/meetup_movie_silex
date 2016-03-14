@@ -37,6 +37,9 @@
                 <li><a href="{{ path('core_contact') }}">Contact Us</a></li>
             </ul>
 
+            <h3>Best Rated Movies</h3>
+            {{ render(url("best-rated", {'limit': 5})) }}
+
         </div>
 
         <div id="content" class="col-md-9">

@@ -34,6 +34,9 @@ $app->register(
   )
 );
 
+// To access render() function in Twig templates
+$app->register(new Silex\Provider\HttpFragmentServiceProvider());
+
 $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
   'dbs.options' => array (
     'mysql' => array(
@@ -219,6 +222,21 @@ $app->get(
       );
   }
 )->bind('movie_list')->value('page', 1);
+
+$app->get(
+  '/best-rated',
+  function ($limit = 5) use ($app) {
+
+      $movies = $app['object_manager']->findBestRated(1, $limit);
+
+      return $app['twig']->render(
+        'movie/best-rated.html.twig',
+        array(
+          'movies' => $movies
+        )
+      );
+  }
+)->bind('best-rated');
 
 $app->get(
   '/contact',
